@@ -1177,6 +1177,29 @@
   document.getElementById('mobileListClose').addEventListener('click', closeMobileList);
   document.getElementById('mobileListBackdrop').addEventListener('click', closeMobileList);
 
+  // Tap a country in mobile overlay: close overlay and highlight on map
+  let mobileHighlightedNumId = null;
+  mobileCountryList.addEventListener('click', (e) => {
+    const li = e.target.closest('.country-list-item');
+    if (!li) return;
+    const numId = li.dataset.numId;
+    if (!numId) return;
+    // Clear previous highlight
+    if (mobileHighlightedNumId) {
+      queryByNumId(mobileHighlightedNumId).forEach(el => el.classList.remove('highlight'));
+    }
+    mobileHighlightedNumId = numId;
+    closeMobileList();
+    queryByNumId(numId).forEach(el => el.classList.add('highlight'));
+    // Auto-clear highlight after 3 seconds
+    setTimeout(() => {
+      if (mobileHighlightedNumId === numId) {
+        queryByNumId(numId).forEach(el => el.classList.remove('highlight'));
+        mobileHighlightedNumId = null;
+      }
+    }, 3000);
+  });
+
   // --- Build map ---
   function buildMap() {
     mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>'
