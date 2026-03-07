@@ -181,7 +181,12 @@
     }
 
     if (dominated) {
-      const best = { score: current, time: (current === total && total > 0) ? elapsed : null };
+      const isPerfect = current === total && total > 0 && wrongCount === 0;
+      const best = {
+        score: current,
+        time: (current === total && total > 0) ? elapsed : null,
+        perfect: isPerfect || (prev.perfect && current === prev.score)
+      };
       localStorage.setItem(bestKey(activeRegion, activeMode), JSON.stringify(best));
     }
     updateStartScreenProgress();
@@ -190,92 +195,41 @@
   // --- Populate region counts on classic screen ---
   const regions = ['World', 'Asia', 'Europe', 'Africa', 'North America', 'South America', 'Oceania'];
 
+  function updateRegionEl(el, best, total) {
+    if (!el) return;
+    if (best.score > 0) {
+      let text = best.perfect ? '\u2B50 ' : '';
+      text += `Best: ${best.score} / ${total}`;
+      if (best.score === total && best.time !== null) {
+        text += ` (${formatTime(best.time)})`;
+      }
+      el.textContent = text;
+    } else {
+      el.textContent = `${total} countries`;
+    }
+
+    let bar = el.parentNode.querySelector('.region-progress-bar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'region-progress-bar';
+      const fill = document.createElement('div');
+      fill.className = 'region-progress-fill';
+      bar.appendChild(fill);
+      el.parentNode.appendChild(bar);
+    }
+    bar.querySelector('.region-progress-fill').style.width =
+      total > 0 ? (best.score / total * 100) + '%' : '0%';
+  }
+
   function updateStartScreenProgress() {
     regions.forEach(r => {
       const total = r === 'World'
         ? COUNTRIES.length
         : COUNTRIES.filter(c => c.continent === r).length;
 
-      // Classic screen
-      const el = document.querySelector(`[data-region-count="${r}"]`);
-      if (el) {
-        const best = getBest(r, activeMode, 'classic');
-        if (best.score > 0) {
-          let text = `Best: ${best.score} / ${total}`;
-          if (best.score === total && best.time !== null) {
-            text += ` (${formatTime(best.time)})`;
-          }
-          el.textContent = text;
-        } else {
-          el.textContent = `${total} countries`;
-        }
-
-        let bar = el.parentNode.querySelector('.region-progress-bar');
-        if (!bar) {
-          bar = document.createElement('div');
-          bar.className = 'region-progress-bar';
-          const fill = document.createElement('div');
-          fill.className = 'region-progress-fill';
-          bar.appendChild(fill);
-          el.parentNode.appendChild(bar);
-        }
-        bar.querySelector('.region-progress-fill').style.width =
-          total > 0 ? (best.score / total * 100) + '%' : '0%';
-      }
-
-      // Flag screen
-      const fel = document.querySelector(`[data-region-count-flag="${r}"]`);
-      if (fel) {
-        const best = getBest(r, 'countries', 'flag');
-        if (best.score > 0) {
-          let text = `Best: ${best.score} / ${total}`;
-          if (best.score === total && best.time !== null) {
-            text += ` (${formatTime(best.time)})`;
-          }
-          fel.textContent = text;
-        } else {
-          fel.textContent = `${total} countries`;
-        }
-
-        let bar = fel.parentNode.querySelector('.region-progress-bar');
-        if (!bar) {
-          bar = document.createElement('div');
-          bar.className = 'region-progress-bar';
-          const fill = document.createElement('div');
-          fill.className = 'region-progress-fill';
-          bar.appendChild(fill);
-          fel.parentNode.appendChild(bar);
-        }
-        bar.querySelector('.region-progress-fill').style.width =
-          total > 0 ? (best.score / total * 100) + '%' : '0%';
-      }
-
-      // Target screen
-      const pel = document.querySelector(`[data-region-count-practice="${r}"]`);
-      if (pel) {
-        const best = getBest(r, practiceMode, 'target');
-        if (best.score > 0) {
-          let text = `Best: ${best.score} / ${total}`;
-          if (best.score === total && best.time !== null) {
-            text += ` (${formatTime(best.time)})`;
-          }
-          pel.textContent = text;
-        } else {
-          pel.textContent = `${total} countries`;
-        }
-
-        let bar = pel.parentNode.querySelector('.region-progress-bar');
-        if (!bar) {
-          bar = document.createElement('div');
-          bar.className = 'region-progress-bar';
-          const fill = document.createElement('div');
-          fill.className = 'region-progress-fill';
-          bar.appendChild(fill);
-          pel.parentNode.appendChild(bar);
-        }
-        bar.querySelector('.region-progress-fill').style.width =
-          total > 0 ? (best.score / total * 100) + '%' : '0%';
-      }
+      updateRegionEl(document.querySelector(`[data-region-count="${r}"]`), getBest(r, activeMode, 'classic'), total);
+      updateRegionEl(document.querySelector(`[data-region-count-flag="${r}"]`), getBest(r, 'countries', 'flag'), total);
+      updateRegionEl(document.querySelector(`[data-region-count-practice="${r}"]`), getBest(r, practiceMode, 'target'), total);
     });
   }
 
@@ -316,6 +270,16 @@
 
   // --- DOM: Sidebar ---
   const countryList = document.getElementById('countryList');
+  const mobileCountryList = document.getElementById('mobileCountryList');
+  const mobileListOverlay = document.getElementById('mobileListOverlay');
+
+  // --- Wrong answer tracking ---
+  let wrongCount = 0;
+
+  // --- Map zoom state (for recenter) ---
+  let mapZoomRef = null;
+  let mapSvgRef = null;
+  let mapZoomTransformRef = null;
 
   // --- Game state ---
   let activeRegion = 'World';
@@ -425,6 +389,7 @@
     practiceRemaining = [];
     flagTarget = null;
     flagRemaining = [];
+    wrongCount = 0;
 
     COUNTRIES.forEach(c => {
       numIdToCountry[c.numId] = c;
@@ -590,23 +555,26 @@
   }
 
   function updateSidebarItem(country) {
-    const li = countryList.querySelector(`[data-country-id="${country.id}"]`);
-    if (!li) return;
-    const p = progress[country.id];
-    const nameSpan = li.querySelector('.cl-name');
-    const capSpan = li.querySelector('.cl-capital');
+    const lists = [countryList, mobileCountryList];
+    lists.forEach(list => {
+      const li = list.querySelector(`[data-country-id="${country.id}"]`);
+      if (!li) return;
+      const p = progress[country.id];
+      const nameSpan = li.querySelector('.cl-name');
+      const capSpan = li.querySelector('.cl-capital');
 
-    if (p.nameFound && activeMode !== 'capitals') {
-      nameSpan.textContent = country.name;
-      nameSpan.classList.add('revealed');
-    }
-    if (p.capitalFound && activeMode !== 'countries') {
-      capSpan.textContent = country.capital;
-      capSpan.classList.add('revealed');
-    }
-    if (isCompleted(country.id)) {
-      li.classList.add('completed-item');
-    }
+      if (p.nameFound && activeMode !== 'capitals') {
+        nameSpan.textContent = country.name;
+        nameSpan.classList.add('revealed');
+      }
+      if (p.capitalFound && activeMode !== 'countries') {
+        capSpan.textContent = country.capital;
+        capSpan.classList.add('revealed');
+      }
+      if (isCompleted(country.id)) {
+        li.classList.add('completed-item');
+      }
+    });
   }
 
   function queryByNumId(numId) {
@@ -891,6 +859,7 @@
           pickNextFlag();
         }
       } else {
+        wrongCount++;
         showFeedback('Wrong! Try again.', 'error');
         userInput.classList.add('shake');
         gameScreen.classList.add('flash-error');
@@ -953,6 +922,7 @@
           pickNextTarget();
         }
       } else {
+        wrongCount++;
         showFeedback(activeMode === 'countries'
           ? `Wrong! That's ${practiceTarget.name}.`
           : `Wrong! The capital is ${practiceTarget.capital}.`, 'error');
@@ -1036,6 +1006,7 @@
     }
 
     if (!matched) {
+      wrongCount++;
       showFeedback('No match found. Check your spelling!', 'error');
       userInput.classList.add('shake');
       gameScreen.classList.add('flash-error');
@@ -1069,6 +1040,9 @@
     let subtitle = gameType === 'flag'
       ? `You identified every flag in ${regionLabel}!`
       : `You named every ${modeLabels[activeMode]} in ${regionLabel}!`;
+    if (wrongCount === 0) {
+      subtitle += `<br>\u2B50 Perfect run — no wrong answers!`;
+    }
     subtitle += `<br>Time: ${formatTime(finalTime)}`;
     if (!isNewRecord && prev.time !== null) {
       subtitle += ` (Best: ${formatTime(prev.time)})`;
@@ -1183,6 +1157,27 @@
     handleSubmit();
   });
 
+  // --- Mobile: recenter button ---
+  document.getElementById('recenterBtn').addEventListener('click', () => {
+    if (mapSvgRef && mapZoomRef && mapZoomTransformRef) {
+      mapSvgRef.transition().duration(500).call(mapZoomRef.transform, mapZoomTransformRef);
+    }
+  });
+
+  // --- Mobile: country list overlay ---
+  document.getElementById('listToggleBtn').addEventListener('click', () => {
+    // Clone current sidebar list into mobile overlay
+    mobileCountryList.innerHTML = countryList.innerHTML;
+    mobileListOverlay.classList.remove('hidden');
+  });
+
+  function closeMobileList() {
+    mobileListOverlay.classList.add('hidden');
+  }
+
+  document.getElementById('mobileListClose').addEventListener('click', closeMobileList);
+  document.getElementById('mobileListBackdrop').addEventListener('click', closeMobileList);
+
   // --- Build map ---
   function buildMap() {
     mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>';
@@ -1206,6 +1201,8 @@
       .scaleExtent([1, isMobile ? 20 : 12])
       .on('zoom', (event) => g.attr('transform', event.transform));
     svg.call(zoom);
+    mapZoomRef = zoom;
+    mapSvgRef = svg;
 
     const projection = d3.geoNaturalEarth1()
       .scale(isMobile ? width / 3.2 : width / 5.5)
@@ -1350,10 +1347,8 @@
             const scale = Math.min(maxScale, padding / Math.max(dx / width, dy / height));
             const translate = [width / 2 - scale * x, height / 2 - scale * y];
 
-            svg.transition().duration(750).call(
-              zoom.transform,
-              d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
-            );
+            mapZoomTransformRef = d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale);
+            svg.transition().duration(750).call(zoom.transform, mapZoomTransformRef);
           }
         }
       })

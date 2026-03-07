@@ -42,6 +42,11 @@ button, input {
   100% { r: 4; opacity: 1; }
 }
 
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 @keyframes celebrationPop {
   0% { transform: scale(0.6); opacity: 0; }
   60% { transform: scale(1.05); }
@@ -232,7 +237,7 @@ button, input {
   border-radius: 2px;
 }
 
-/* ===== Sidebar items ===== */
+/* ===== Sidebar items (shared between sidebar + mobile overlay) ===== */
 
 .country-list-item {
   display: flex;
@@ -395,6 +400,16 @@ button, input {
   /* --- Flag area on mobile --- */
   .flag-img {
     width: 14rem !important;
+  }
+
+  /* --- Mobile floating buttons --- */
+  .mobile-map-btns {
+    display: flex !important;
+  }
+
+  /* --- Mobile list overlay --- */
+  .mobile-list-panel {
+    animation: slideUp 0.25s ease;
   }
 
   /* --- Map on mobile --- */
