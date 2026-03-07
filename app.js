@@ -184,6 +184,7 @@
       const isPerfect = current === total && total > 0 && wrongCount === 0;
       const best = {
         score: current,
+        total: total,
         time: (current === total && total > 0) ? elapsed : null,
         perfect: isPerfect || (prev.perfect && current === prev.score)
       };
@@ -198,9 +199,10 @@
   function updateRegionEl(el, best, total) {
     if (!el) return;
     if (best.score > 0) {
+      const displayTotal = best.total || total;
       let text = best.perfect ? '\u2B50 ' : '';
-      text += `Best: ${best.score} / ${total}`;
-      if (best.score === total && best.time !== null) {
+      text += `Best: ${best.score} / ${displayTotal}`;
+      if (best.score === displayTotal && best.time !== null) {
         text += ` (${formatTime(best.time)})`;
       }
       el.textContent = text;
