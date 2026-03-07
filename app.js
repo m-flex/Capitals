@@ -421,6 +421,7 @@
     } else {
       buildSidebar();
       buildMap();
+      attachMobileMapBtnListeners();
     }
   }
 
@@ -1157,19 +1158,17 @@
     handleSubmit();
   });
 
-  // --- Mobile: recenter button ---
-  document.getElementById('recenterBtn').addEventListener('click', () => {
-    if (mapSvgRef && mapZoomRef && mapZoomTransformRef) {
-      mapSvgRef.transition().duration(500).call(mapZoomRef.transform, mapZoomTransformRef);
-    }
-  });
-
-  // --- Mobile: country list overlay ---
-  document.getElementById('listToggleBtn').addEventListener('click', () => {
-    // Clone current sidebar list into mobile overlay
-    mobileCountryList.innerHTML = countryList.innerHTML;
-    mobileListOverlay.classList.remove('hidden');
-  });
+  function attachMobileMapBtnListeners() {
+    document.getElementById('recenterBtn').addEventListener('click', () => {
+      if (mapSvgRef && mapZoomRef && mapZoomTransformRef) {
+        mapSvgRef.transition().duration(500).call(mapZoomRef.transform, mapZoomTransformRef);
+      }
+    });
+    document.getElementById('listToggleBtn').addEventListener('click', () => {
+      mobileCountryList.innerHTML = countryList.innerHTML;
+      mobileListOverlay.classList.remove('hidden');
+    });
+  }
 
   function closeMobileList() {
     mobileListOverlay.classList.add('hidden');
@@ -1180,7 +1179,11 @@
 
   // --- Build map ---
   function buildMap() {
-    mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>';
+    mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>'
+      + '<div class="mobile-map-btns absolute bottom-3 right-3 flex-col gap-2 z-50" id="mobileMapBtns">'
+      + '  <button id="recenterBtn" class="w-10 h-10 rounded-full bg-surface-light/90 border border-white/10 text-pastel-blue text-lg backdrop-blur-md shadow-lg flex items-center justify-center" title="Recenter map">&#8982;</button>'
+      + '  <button id="listToggleBtn" class="w-10 h-10 rounded-full bg-surface-light/90 border border-white/10 text-pastel-blue text-lg backdrop-blur-md shadow-lg flex items-center justify-center" title="Show country list">&#9776;</button>'
+      + '</div>';
     const tooltipEl = document.getElementById('tooltip');
 
     const width = mapContainer.clientWidth;
