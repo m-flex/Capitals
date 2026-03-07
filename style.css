@@ -1,0 +1,347 @@
+/* ===== Animations ===== */
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes progressGlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(6px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+  90% { transform: translateX(2px); }
+}
+
+@keyframes redFlash {
+  0% { background: transparent; }
+  50% { background: rgba(255, 179, 186, 0.08); }
+  100% { background: transparent; }
+}
+
+@keyframes targetPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes markerPop {
+  0% { opacity: 0.6; }
+  40% { r: 7; opacity: 1; }
+  100% { r: 4; opacity: 1; }
+}
+
+@keyframes celebrationPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Animated gradient text */
+.animate-gradient-text {
+  background: linear-gradient(135deg, #FFC8DD, #BDE0FE, #CDB4DB, #BAFFC9);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease infinite;
+}
+
+.animate-celebration-pop {
+  animation: celebrationPop 0.5s ease;
+}
+
+/* ===== JS-toggled visibility ===== */
+
+.screen.hidden,
+.celebration-overlay.hidden {
+  display: none !important;
+}
+
+/* ===== Mode tabs ===== */
+
+.mode-tab {
+  color: #8888a8;
+}
+
+.mode-tab:hover {
+  color: #e0e0e0;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mode-tab.active {
+  background: linear-gradient(135deg, rgba(255, 200, 221, 0.2), rgba(189, 224, 254, 0.2));
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 200, 221, 0.15);
+}
+
+/* ===== SVG Map ===== */
+
+.map-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.country-path {
+  fill: #2a2a3e;
+  stroke: #4a4a65;
+  stroke-width: 0.8px;
+  opacity: 0.4;
+  transition: fill 0.3s ease, opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.country-path:hover {
+  opacity: 0.7;
+  stroke: #BDE0FE;
+  stroke-width: 1.2px;
+}
+
+.country-path.completed {
+  opacity: 1;
+  fill: #2a2a3e;
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 1px;
+}
+
+.country-path.half-known {
+  opacity: 0.85;
+  fill: #2a2a3e;
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 0.8px;
+}
+
+.country-path.out-of-region {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.country-path.highlight,
+.country-marker.highlight {
+  opacity: 1;
+  fill: #FFC8DD;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+/* Practice mode target highlight */
+.country-path.practice-target {
+  opacity: 1;
+  fill: #CDB4DB;
+  stroke: #fff;
+  stroke-width: 2px;
+  animation: targetPulse 1.5s ease-in-out infinite;
+}
+
+.country-marker.practice-target {
+  opacity: 1;
+  fill: #CDB4DB;
+  stroke: #fff;
+  stroke-width: 2.5px;
+  r: 6;
+  animation: targetPulse 1.5s ease-in-out infinite;
+}
+
+/* Small nation markers */
+.country-marker {
+  fill: #4a4a6a;
+  stroke: #6a6a8a;
+  stroke-width: 1.5px;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: fill 0.3s ease, opacity 0.3s ease, r 0.2s ease;
+}
+
+.country-marker:hover {
+  opacity: 0.9;
+  stroke: #BDE0FE;
+  stroke-width: 2px;
+}
+
+.country-marker.half-known {
+  fill: #3a5a7c;
+  stroke: #4a7a9c;
+  opacity: 0.8;
+}
+
+.country-marker.completed {
+  opacity: 1;
+  stroke: #1a1a2e;
+  stroke-width: 1.5px;
+}
+
+.country-marker.out-of-region {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.country-marker.just-completed {
+  animation: markerPop 0.8s ease forwards;
+}
+
+.fill-overlay {
+  transition: opacity 0.3s ease;
+}
+
+/* ===== Tooltip ===== */
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(22, 33, 62, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  display: none;
+  z-index: 100;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.tooltip.visible {
+  display: block;
+}
+
+/* ===== Sidebar scrollbar ===== */
+
+.country-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.country-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.country-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+/* ===== Sidebar items ===== */
+
+.country-list-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 8px;
+  border-radius: 6px;
+  margin: 0 4px;
+}
+
+.country-list-item:hover {
+  background: rgba(255, 200, 221, 0.08);
+}
+
+.country-list-item .cl-name {
+  color: #555570;
+  font-family: monospace;
+  letter-spacing: 1px;
+  font-size: 0.75rem;
+}
+
+.country-list-item .cl-capital {
+  color: #555570;
+  font-family: monospace;
+  letter-spacing: 1px;
+  text-align: right;
+  font-size: 0.75rem;
+}
+
+.country-list-item .cl-name.revealed {
+  color: #e0e0e0;
+  font-family: 'Nunito', sans-serif;
+  letter-spacing: normal;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.country-list-item .cl-capital.revealed {
+  color: #8888a8;
+  font-family: 'Nunito', sans-serif;
+  letter-spacing: normal;
+  font-size: 0.8rem;
+}
+
+.country-list-item.completed-item {
+  opacity: 0.5;
+}
+
+.country-list-item.completed-item .cl-name.revealed {
+  color: #BAFFC9;
+}
+
+.country-list-item.completed-item .cl-capital.revealed {
+  color: #BAFFC9;
+}
+
+/* ===== Feedback states ===== */
+
+.feedback.success { color: #BAFFC9; }
+.feedback.error   { color: #FFB3BA; }
+.feedback.info    { color: #BDE0FE; }
+
+/* ===== Input shake + screen flash ===== */
+
+.input-panel input.shake {
+  animation: shake 0.4s ease;
+  border-color: #FFB3BA;
+  box-shadow: 0 0 0 3px rgba(255, 179, 186, 0.15);
+}
+
+.game-screen.flash-error .map-container {
+  animation: redFlash 0.3s ease;
+}
+
+/* ===== Region progress bars (dynamically created by JS) ===== */
+
+.region-progress-bar {
+  width: 80%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.region-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFC8DD, #BAFFC9);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 16px;
+  }
+
+  .header-left {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .progress-bar {
+    width: 140px;
+  }
+
+  .sidebar {
+    display: none;
+  }
+}

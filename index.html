@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World Capitals Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            nunito: ['Nunito', 'sans-serif'],
+          },
+          colors: {
+            surface: {
+              DEFAULT: '#1a1a2e',
+              light: '#16213e',
+            },
+            pastel: {
+              pink: '#FFC8DD',
+              blue: '#BDE0FE',
+              purple: '#CDB4DB',
+              green: '#BAFFC9',
+              peach: '#FEC89A',
+              red: '#FFB3BA',
+              orange: '#FFDFBA',
+              sky: '#A2D2FF',
+              lime: '#D4E09B',
+              lavender: '#E8BAFF',
+            },
+            muted: {
+              DEFAULT: '#8888a8',
+              dark: '#6a6a88',
+              dim: '#555570',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="font-nunito bg-surface text-gray-200 min-h-screen overflow-x-hidden">
+
+  <!-- Home Screen -->
+  <div class="screen min-h-screen flex items-center justify-center px-5 py-10" id="homeScreen"
+       style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);">
+    <div class="max-w-[560px] w-full text-center">
+      <h1 class="text-5xl md:text-6xl font-extrabold mb-2 tracking-wide animate-gradient-text">
+        World Capitals Quiz
+      </h1>
+      <p class="text-base text-muted mb-14">How well do you know the world?</p>
+
+      <div class="space-y-4">
+        <button id="classicModeBtn"
+                class="w-full flex items-center gap-5 p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0 text-left">
+          <span class="text-4xl">&#127758;</span>
+          <div>
+            <div class="text-lg font-bold text-gray-100">Classic Mode</div>
+            <div class="text-xs text-muted-dark mt-0.5">Name countries and capitals to fill in the map</div>
+          </div>
+          <span class="ml-auto text-muted text-xl">&rsaquo;</span>
+        </button>
+
+        <button id="practiceModeBtn"
+                class="w-full flex items-center gap-5 p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0 text-left">
+          <span class="text-4xl">&#127919;</span>
+          <div>
+            <div class="text-lg font-bold text-gray-100">Target Mode</div>
+            <div class="text-xs text-muted-dark mt-0.5">Identify highlighted countries or their capitals</div>
+          </div>
+          <span class="ml-auto text-muted text-xl">&rsaquo;</span>
+        </button>
+
+        <div class="w-full flex items-center gap-5 p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] opacity-35 text-left">
+          <span class="text-4xl">&#127987;</span>
+          <div>
+            <div class="text-lg font-bold text-gray-100">More Modes Coming Soon</div>
+            <div class="text-xs text-muted-dark mt-0.5">Flag quiz, population ranking, and more...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Classic Mode Selection Screen -->
+  <div class="screen hidden min-h-screen flex items-center justify-center px-5 py-10" id="classicScreen"
+       style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);">
+    <div class="max-w-[720px] w-full text-center">
+      <button id="classicBackBtn"
+              class="mb-6 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-pastel-blue text-lg cursor-pointer transition-all duration-200 hover:bg-pastel-pink/[0.12] hover:border-pastel-pink hover:text-pastel-pink">
+        &#8592;
+      </button>
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-2 animate-gradient-text">Classic Mode</h2>
+      <p class="text-sm text-muted mb-8">Fill in the map by answering correctly</p>
+
+      <div class="inline-flex rounded-xl bg-white/[0.04] border border-white/[0.08] p-1 mb-8" id="classicModeTabs">
+        <button class="mode-tab px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer" data-mode="countries">Countries</button>
+        <button class="mode-tab px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer" data-mode="capitals">Capitals</button>
+        <button class="mode-tab px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer active" data-mode="both">Both</button>
+      </div>
+
+      <div class="region-grid grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3" id="classicRegionGrid">
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0" data-region="World">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">World Map</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count="World"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0" data-region="Asia">
+          <span class="text-3xl">&#127759;</span>
+          <span class="text-sm font-bold">Asia</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count="Asia"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0" data-region="Europe">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Europe</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count="Europe"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0" data-region="Africa">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Africa</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count="Africa"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0" data-region="North America">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">North America</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count="North America"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0" data-region="South America">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">South America</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count="South America"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0" data-region="Oceania">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Oceania</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count="Oceania"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practice Mode Selection Screen -->
+  <div class="screen hidden min-h-screen flex items-center justify-center px-5 py-10" id="practiceScreen"
+       style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);">
+    <div class="max-w-[720px] w-full text-center">
+      <button id="practiceBackBtn"
+              class="mb-6 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-pastel-blue text-lg cursor-pointer transition-all duration-200 hover:bg-pastel-pink/[0.12] hover:border-pastel-pink hover:text-pastel-pink">
+        &#8592;
+      </button>
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-2 animate-gradient-text">Target Mode</h2>
+      <p class="text-sm text-muted mb-8">Identify highlighted countries one by one</p>
+
+      <div class="inline-flex rounded-xl bg-white/[0.04] border border-white/[0.08] p-1 mb-8" id="practiceModeTabs">
+        <button class="mode-tab px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer active" data-mode="countries">Countries</button>
+        <button class="mode-tab px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer" data-mode="capitals">Capitals</button>
+      </div>
+
+      <div class="region-grid grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3" id="practiceRegionGrid">
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0" data-region="World">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">World Map</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-practice="World"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0" data-region="Asia">
+          <span class="text-3xl">&#127759;</span>
+          <span class="text-sm font-bold">Asia</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-practice="Asia"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0" data-region="Europe">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Europe</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-practice="Europe"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0" data-region="Africa">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Africa</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-practice="Africa"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0" data-region="North America">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">North America</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-practice="North America"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0" data-region="South America">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">South America</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-practice="South America"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0" data-region="Oceania">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Oceania</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-practice="Oceania"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="screen hidden h-screen overflow-hidden flex flex-col" id="gameScreen">
+    <header class="flex justify-between items-center px-5 py-2.5 bg-surface-light/95 border-b border-white/[0.06] backdrop-blur-lg shrink-0">
+      <div class="header-left flex items-center gap-3">
+        <button class="btn-back px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-pastel-blue text-lg cursor-pointer transition-all duration-200 hover:bg-pastel-pink/[0.12] hover:border-pastel-pink hover:text-pastel-pink" id="backBtn" title="Back to menu">&#8592;</button>
+        <h1 class="text-lg font-bold tracking-wide bg-gradient-to-r from-pastel-pink to-pastel-blue bg-clip-text text-transparent">World Capitals Quiz</h1>
+        <span class="region-badge text-[0.7rem] font-bold py-1 px-3 rounded-full bg-pastel-blue/[0.12] text-pastel-blue border border-pastel-blue/20" id="regionBadge"></span>
+        <span class="mode-badge text-[0.7rem] font-bold py-1 px-3 rounded-full bg-pastel-pink/[0.12] text-pastel-pink border border-pastel-pink/20" id="modeBadge"></span>
+      </div>
+      <div class="stats flex gap-4 items-center text-sm">
+        <span class="mode-indicator hidden" id="modeIndicator"></span>
+        <span class="text-pastel-peach font-bold font-mono tracking-wider text-base" id="timerDisplay">0:00</span>
+        <span class="text-muted font-semibold">Completed: <span class="count text-pastel-green font-extrabold" id="completedCount">0</span> / <span id="totalCount">0</span></span>
+        <div class="progress-bar w-44 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+          <div class="progress-fill h-full w-0 rounded-full transition-[width] duration-500 ease-out" id="progressFill"
+               style="background: linear-gradient(90deg, #FFC8DD, #BDE0FE, #BAFFC9); background-size: 200% 100%; animation: progressGlow 3s ease infinite;"></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex flex-col flex-1 min-h-0">
+      <div class="game-area flex flex-1 min-h-0">
+        <div class="map-container flex-1 relative overflow-hidden cursor-grab active:cursor-grabbing" id="mapContainer">
+          <div class="tooltip" id="tooltip"></div>
+        </div>
+        <div class="sidebar w-64 bg-surface-light/95 border-l border-white/[0.06] flex flex-col min-h-0 backdrop-blur-lg" id="sidebar">
+          <div class="sidebar-header px-3.5 py-2.5 text-xs font-bold text-pastel-blue border-b border-white/[0.06] tracking-widest uppercase">Countries</div>
+          <ul class="country-list list-none overflow-y-auto flex-1 py-1" id="countryList"></ul>
+        </div>
+      </div>
+
+      <div class="input-panel bg-surface-light/95 border-t border-white/[0.06] px-5 py-3 flex items-center gap-3 flex-wrap backdrop-blur-lg shrink-0">
+        <label class="text-sm text-muted font-semibold min-w-[130px]" id="inputLabel">Country or Capital:</label>
+        <input type="text" id="userInput"
+               class="flex-1 min-w-[200px] max-w-[400px] px-4 py-2.5 border-[1.5px] border-white/10 rounded-xl bg-white/[0.04] text-gray-200 font-nunito text-[0.95rem] font-semibold outline-none transition-all duration-200 focus:border-pastel-blue focus:ring-2 focus:ring-pastel-blue/10 placeholder:text-muted-dim/60"
+               placeholder="Type a country name or capital city..." autocomplete="off" spellcheck="false">
+        <button class="btn-submit px-6 py-2.5 border-none rounded-xl font-nunito text-sm font-bold cursor-pointer transition-all duration-200 text-surface hover:shadow-[0_4px_16px_rgba(255,200,221,0.25)] hover:-translate-y-0.5 active:scale-[0.96]"
+                style="background: linear-gradient(135deg, #FFC8DD, #BDE0FE);" id="submitBtn">Submit</button>
+        <span class="feedback text-sm font-semibold ml-2 min-h-[1.2em]" id="feedback"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Celebration Overlay -->
+  <div class="celebration-overlay hidden fixed inset-0 z-[1000] flex items-center justify-center bg-surface/85 backdrop-blur-lg" id="celebrationOverlay">
+    <canvas class="absolute inset-0 w-full h-full pointer-events-none" id="confettiCanvas"></canvas>
+    <div class="celebration-content text-center z-10 animate-celebration-pop">
+      <h2 class="celebration-title text-5xl md:text-6xl font-extrabold mb-3 animate-gradient-text">Region Complete!</h2>
+      <p class="text-lg text-muted font-semibold mb-8" id="celebrationSubtitle"></p>
+      <button class="celebration-btn px-9 py-3.5 border-none rounded-2xl font-nunito text-base font-bold cursor-pointer text-surface transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(255,200,221,0.3)]"
+              style="background: linear-gradient(135deg, #FFC8DD, #BDE0FE);" id="celebrationBackBtn">Back to Menu</button>
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+  <script src="countries.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
