@@ -1145,6 +1145,42 @@
     if (e.key === 'Enter') handleSubmit();
   });
 
+  // --- Auto-submit on exact match ---
+  userInput.addEventListener('input', () => {
+    const val = userInput.value.trim();
+    if (!val) return;
+    const norm = normalize(val);
+
+    // Target/Flag mode: auto-submit on any country name or capital (correct or wrong)
+    if (gameType === 'target' || gameType === 'flag') {
+      const allAnswers = [];
+      for (const c of activeCountries) {
+        allAnswers.push(normalize(c.name));
+        if (c.altNames) c.altNames.forEach(a => allAnswers.push(normalize(a)));
+        allAnswers.push(normalize(c.capital));
+        if (c.altCapitals) c.altCapitals.forEach(a => allAnswers.push(normalize(a)));
+      }
+      if (allAnswers.includes(norm)) handleSubmit();
+      return;
+    }
+
+    // Classic mode: only auto-submit on unfound answers
+    const unfound = [];
+    for (const c of activeCountries) {
+      const p = progress[c.id];
+      if (!p) continue;
+      if (activeMode !== 'capitals' && !p.nameFound) {
+        unfound.push(normalize(c.name));
+        if (c.altNames) c.altNames.forEach(a => unfound.push(normalize(a)));
+      }
+      if (activeMode !== 'countries' && !p.capitalFound) {
+        unfound.push(normalize(c.capital));
+        if (c.altCapitals) c.altCapitals.forEach(a => unfound.push(normalize(a)));
+      }
+    }
+    if (unfound.includes(norm)) handleSubmit();
+  });
+
   // --- Build map ---
   function buildMap() {
     mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>';
