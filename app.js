@@ -1151,34 +1151,36 @@
     if (!val) return;
     const norm = normalize(val);
 
-    // Target/Flag mode: auto-submit on any country name or capital (correct or wrong)
+    // Build answer list based on mode
+    const answers = [];
     if (gameType === 'target' || gameType === 'flag') {
-      const allAnswers = [];
+      // All answers (correct or wrong can trigger submit)
       for (const c of activeCountries) {
-        allAnswers.push(normalize(c.name));
-        if (c.altNames) c.altNames.forEach(a => allAnswers.push(normalize(a)));
-        allAnswers.push(normalize(c.capital));
-        if (c.altCapitals) c.altCapitals.forEach(a => allAnswers.push(normalize(a)));
+        answers.push(normalize(c.name));
+        if (c.altNames) c.altNames.forEach(a => answers.push(normalize(a)));
+        answers.push(normalize(c.capital));
+        if (c.altCapitals) c.altCapitals.forEach(a => answers.push(normalize(a)));
       }
-      if (allAnswers.includes(norm)) handleSubmit();
-      return;
+    } else {
+      // Classic: only unfound answers
+      for (const c of activeCountries) {
+        const p = progress[c.id];
+        if (!p) continue;
+        if (activeMode !== 'capitals' && !p.nameFound) {
+          answers.push(normalize(c.name));
+          if (c.altNames) c.altNames.forEach(a => answers.push(normalize(a)));
+        }
+        if (activeMode !== 'countries' && !p.capitalFound) {
+          answers.push(normalize(c.capital));
+          if (c.altCapitals) c.altCapitals.forEach(a => answers.push(normalize(a)));
+        }
+      }
     }
 
-    // Classic mode: only auto-submit on unfound answers
-    const unfound = [];
-    for (const c of activeCountries) {
-      const p = progress[c.id];
-      if (!p) continue;
-      if (activeMode !== 'capitals' && !p.nameFound) {
-        unfound.push(normalize(c.name));
-        if (c.altNames) c.altNames.forEach(a => unfound.push(normalize(a)));
-      }
-      if (activeMode !== 'countries' && !p.capitalFound) {
-        unfound.push(normalize(c.capital));
-        if (c.altCapitals) c.altCapitals.forEach(a => unfound.push(normalize(a)));
-      }
-    }
-    if (unfound.includes(norm)) handleSubmit();
+    if (!answers.includes(norm)) return;
+    // Don't auto-submit if another answer starts with this input (e.g. UK vs Ukraine)
+    if (answers.some(a => a.startsWith(norm) && a !== norm)) return;
+    handleSubmit();
   });
 
   // --- Build map ---
