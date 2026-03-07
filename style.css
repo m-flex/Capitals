@@ -1,3 +1,8 @@
+/* ===== Global mobile ===== */
+button, input {
+  touch-action: manipulation;
+}
+
 /* ===== Animations ===== */
 
 @keyframes gradientShift {
@@ -336,22 +341,114 @@
 /* ===== Responsive ===== */
 
 @media (max-width: 768px) {
+  /* --- Header --- */
   header {
     flex-direction: column;
-    gap: 8px;
-    padding: 8px 16px;
+    gap: 4px;
+    padding: 6px 12px;
   }
 
-  .header-left {
+  header .header-left {
     width: 100%;
     justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
-  .progress-bar {
-    width: 140px;
+  header .header-left h1 {
+    font-size: 0.9rem;
+  }
+
+  header .stats {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  header .progress-bar {
+    width: 100px;
+  }
+
+  /* --- Game area: stack map + sidebar vertically --- */
+  .game-area {
+    flex-direction: column;
+  }
+
+  .map-container {
+    flex: 1;
+    min-height: 40vh;
   }
 
   .sidebar {
+    width: 100%;
+    max-height: 20vh;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .sidebar.hide-mobile {
     display: none;
+  }
+
+  /* Flag mode sidebar on mobile — horizontal centered */
+  #flagDisplay {
+    flex-direction: row !important;
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+
+  #flagDisplay img {
+    width: 100px !important;
+  }
+
+  /* --- Input panel --- */
+  .input-panel {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .input-panel label {
+    min-width: auto !important;
+    font-size: 0.75rem;
+  }
+
+  .input-panel input {
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  .input-panel .btn-submit {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+
+  .input-panel .feedback {
+    width: 100%;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  /* --- Home / selection screens --- */
+  .screen h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .region-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .region-btn {
+    padding: 12px 8px !important;
+  }
+
+  /* --- Mode tabs on mobile --- */
+  .mode-tab {
+    padding: 6px 12px !important;
+    font-size: 0.75rem !important;
   }
 }

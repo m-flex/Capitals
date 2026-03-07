@@ -49,14 +49,14 @@
   <div class="screen min-h-screen flex items-center justify-center px-5 py-10" id="homeScreen"
        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);">
     <div class="max-w-[560px] w-full text-center">
-      <h1 class="text-5xl md:text-6xl font-extrabold mb-2 tracking-wide animate-gradient-text">
+      <h1 class="text-4xl md:text-6xl font-extrabold mb-2 tracking-wide animate-gradient-text">
         World Capitals Quiz
       </h1>
-      <p class="text-base text-muted mb-14">How well do you know the world?</p>
+      <p class="text-sm md:text-base text-muted mb-8 md:mb-14">How well do you know the world?</p>
 
       <div class="space-y-4">
         <button id="classicModeBtn"
-                class="w-full flex items-center gap-5 p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0 text-left">
+                class="w-full flex items-center gap-4 p-4 md:p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-pink hover:bg-pastel-pink/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(255,200,221,0.12)] active:translate-y-0 text-left">
           <span class="text-4xl">&#127758;</span>
           <div>
             <div class="text-lg font-bold text-gray-100">Classic Mode</div>
@@ -66,7 +66,7 @@
         </button>
 
         <button id="practiceModeBtn"
-                class="w-full flex items-center gap-5 p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0 text-left">
+                class="w-full flex items-center gap-4 p-4 md:p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-purple hover:bg-pastel-purple/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(205,180,219,0.12)] active:translate-y-0 text-left">
           <span class="text-4xl">&#127919;</span>
           <div>
             <div class="text-lg font-bold text-gray-100">Target Mode</div>
@@ -76,7 +76,7 @@
         </button>
 
         <button id="flagModeBtn"
-                class="w-full flex items-center gap-5 p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-peach hover:bg-pastel-peach/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(254,200,154,0.12)] active:translate-y-0 text-left">
+                class="w-full flex items-center gap-4 p-4 md:p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-peach hover:bg-pastel-peach/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(254,200,154,0.12)] active:translate-y-0 text-left">
           <span class="text-4xl">&#127988;</span>
           <div>
             <div class="text-lg font-bold text-gray-100">Flag Quiz</div>
@@ -256,15 +256,15 @@
   <div class="screen hidden h-screen overflow-hidden flex flex-col" id="gameScreen">
     <header class="flex justify-between items-center px-5 py-2.5 bg-surface-light/95 border-b border-white/[0.06] backdrop-blur-lg shrink-0">
       <div class="header-left flex items-center gap-3">
-        <button class="btn-back px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-pastel-blue text-lg cursor-pointer transition-all duration-200 hover:bg-pastel-pink/[0.12] hover:border-pastel-pink hover:text-pastel-pink" id="backBtn" title="Back to menu">&#8592;</button>
-        <h1 class="text-lg font-bold tracking-wide bg-gradient-to-r from-pastel-pink to-pastel-blue bg-clip-text text-transparent">World Capitals Quiz</h1>
-        <span class="region-badge text-[0.7rem] font-bold py-1 px-3 rounded-full bg-pastel-blue/[0.12] text-pastel-blue border border-pastel-blue/20" id="regionBadge"></span>
-        <span class="mode-badge text-[0.7rem] font-bold py-1 px-3 rounded-full bg-pastel-pink/[0.12] text-pastel-pink border border-pastel-pink/20" id="modeBadge"></span>
+        <button class="btn-back px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-pastel-blue text-lg cursor-pointer transition-all duration-200 hover:bg-pastel-pink/[0.12] hover:border-pastel-pink hover:text-pastel-pink shrink-0" id="backBtn" title="Back to menu">&#8592;</button>
+        <h1 class="text-lg font-bold tracking-wide bg-gradient-to-r from-pastel-pink to-pastel-blue bg-clip-text text-transparent hidden md:block">World Capitals Quiz</h1>
+        <span class="region-badge text-[0.7rem] font-bold py-1 px-3 rounded-full bg-pastel-blue/[0.12] text-pastel-blue border border-pastel-blue/20 shrink-0" id="regionBadge"></span>
+        <span class="mode-badge text-[0.7rem] font-bold py-1 px-3 rounded-full bg-pastel-pink/[0.12] text-pastel-pink border border-pastel-pink/20 shrink-0" id="modeBadge"></span>
       </div>
       <div class="stats flex gap-4 items-center text-sm">
         <span class="mode-indicator hidden" id="modeIndicator"></span>
         <span class="text-pastel-peach font-bold font-mono tracking-wider text-base" id="timerDisplay">0:00</span>
-        <span class="text-muted font-semibold">Completed: <span class="count text-pastel-green font-extrabold" id="completedCount">0</span> / <span id="totalCount">0</span></span>
+        <span class="text-muted font-semibold whitespace-nowrap"><span class="count text-pastel-green font-extrabold" id="completedCount">0</span> / <span id="totalCount">0</span></span>
         <div class="progress-bar w-44 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
           <div class="progress-fill h-full w-0 rounded-full transition-[width] duration-500 ease-out" id="progressFill"
                style="background: linear-gradient(90deg, #FFC8DD, #BDE0FE, #BAFFC9); background-size: 200% 100%; animation: progressGlow 3s ease infinite;"></div>

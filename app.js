@@ -378,16 +378,19 @@
 
     // Toggle sidebar between country list and flag display
     const countryListEl = document.getElementById('countryList');
+    const sidebarEl = document.getElementById('sidebar');
     if (gameType === 'flag') {
       countryListEl.classList.add('hidden');
       flagDisplay.classList.remove('hidden');
       flagDisplay.classList.add('flex');
       sidebarHeader.textContent = 'Flag';
+      sidebarEl.classList.remove('hide-mobile');
     } else {
       countryListEl.classList.remove('hidden');
       flagDisplay.classList.add('hidden');
       flagDisplay.classList.remove('flex');
       sidebarHeader.textContent = 'Countries';
+      sidebarEl.classList.add('hide-mobile');
     }
 
     if (gameType === 'flag') {
@@ -560,9 +563,11 @@
 
       const capSpan = document.createElement('span');
       capSpan.className = 'cl-capital';
-      const showCapByDefault = activeMode === 'countries';
-      capSpan.textContent = showCapByDefault ? c.capital : '????';
-      if (showCapByDefault) capSpan.classList.add('revealed');
+      if (activeMode === 'countries') {
+        capSpan.style.display = 'none';
+      } else {
+        capSpan.textContent = '????';
+      }
 
       li.appendChild(nameSpan);
       li.appendChild(capSpan);
