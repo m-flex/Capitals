@@ -282,6 +282,11 @@
   let mapZoomRef = null;
   let mapSvgRef = null;
   let mapZoomTransformRef = null;
+  let mapProjectionRef = null;
+  let mapPathGenRef = null;
+  let mapWidthRef = 0;
+  let mapHeightRef = 0;
+  let mapGeoFeaturesRef = null;
 
   // --- Game state ---
   let activeRegion = 'World';
@@ -807,6 +812,9 @@
     // Highlight target on map
     queryByNumId(practiceTarget.numId).forEach(el => el.classList.add('practice-target'));
 
+    // Zoom to target country
+    zoomToCountry(practiceTarget);
+
     // Update input label
     if (activeMode === 'capitals') {
       inputLabel.textContent = `Capital of ${practiceTarget.name}?`;
@@ -818,6 +826,50 @@
 
     userInput.value = '';
     userInput.focus();
+  }
+
+  function zoomToCountry(country) {
+    if (!mapSvgRef || !mapZoomRef || !mapPathGenRef || !mapProjectionRef) return;
+
+    // Try to find the GeoJSON feature for this country
+    let bounds = null;
+    if (mapGeoFeaturesRef) {
+      const feature = mapGeoFeaturesRef.find(f => String(f.id) === String(country.numId) || String(f.id) === String(Number(country.numId)));
+      if (feature) {
+        bounds = mapPathGenRef.bounds(feature);
+      }
+    }
+
+    // Fallback for small nations with marker coords
+    if (!bounds && SMALL_NATIONS[country.numId]) {
+      const coords = SMALL_NATIONS[country.numId];
+      const [cx, cy] = mapProjectionRef([coords.lng, coords.lat]);
+      if (cx != null && cy != null) {
+        bounds = [[cx - 20, cy - 20], [cx + 20, cy + 20]];
+      }
+    }
+
+    if (!bounds) return;
+
+    const [[x0, y0], [x1, y1]] = bounds;
+    const bw = x1 - x0;
+    const bh = y1 - y0;
+    const cx = (x0 + x1) / 2;
+    const cy = (y0 + y1) / 2;
+
+    // Calculate zoom scale: fit the country with padding
+    const scale = Math.min(
+      mapWidthRef / (bw * 1.8),
+      mapHeightRef / (bh * 1.8),
+      8 // max zoom
+    );
+    const clampedScale = Math.max(scale, 2); // min zoom of 2x
+
+    const tx = mapWidthRef / 2 - cx * clampedScale;
+    const ty = mapHeightRef / 2 - cy * clampedScale;
+
+    const transform = d3.zoomIdentity.translate(tx, ty).scale(clampedScale);
+    mapSvgRef.transition().duration(600).call(mapZoomRef.transform, transform);
   }
 
   // --- Flag mode helpers ---
@@ -1231,12 +1283,16 @@
     svg.call(zoom);
     mapZoomRef = zoom;
     mapSvgRef = svg;
+    mapWidthRef = width;
+    mapHeightRef = height;
 
     const projection = d3.geoNaturalEarth1()
       .scale(isMobile ? width / 3.2 : width / 5.5)
       .translate([width / 2, height / (isMobile ? 1.8 : 2)]);
+    mapProjectionRef = projection;
 
     const pathGen = d3.geoPath().projection(projection);
+    mapPathGenRef = pathGen;
 
     svg.insert('rect', ':first-child')
       .attr('width', '100%')
@@ -1254,6 +1310,7 @@
     d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
       .then(world => {
         const countries = topojson.feature(world, world.objects.countries).features;
+        mapGeoFeaturesRef = countries;
 
         g.selectAll('.country-path')
           .data(countries)
