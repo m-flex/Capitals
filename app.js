@@ -67,9 +67,11 @@
   // --- Flag mode state ---
   let flagTarget = null;
   let flagRemaining = [];
-  const flagDisplay = document.getElementById('flagDisplay');
+  const flagArea = document.getElementById('flagArea');
   const flagImage = document.getElementById('flagImage');
-  const flagHint = document.getElementById('flagHint');
+  const flagCounter = document.getElementById('flagCounter');
+  const flagTotal = document.getElementById('flagTotal');
+  const gameArea = document.getElementById('gameArea');
   const sidebarHeader = document.getElementById('sidebarHeader');
 
   // --- Screen helpers ---
@@ -376,21 +378,16 @@
       modeBadge.textContent = modeLabels[activeMode];
     }
 
-    // Toggle sidebar between country list and flag display
-    const countryListEl = document.getElementById('countryList');
-    const sidebarEl = document.getElementById('sidebar');
+    // Toggle between flag area and map+sidebar area
     if (gameType === 'flag') {
-      countryListEl.classList.add('hidden');
-      flagDisplay.classList.remove('hidden');
-      flagDisplay.classList.add('flex');
-      sidebarHeader.textContent = 'Flag';
-      sidebarEl.classList.remove('hide-mobile');
+      flagArea.classList.remove('hidden');
+      flagArea.classList.add('flex');
+      gameArea.classList.add('hidden');
     } else {
-      countryListEl.classList.remove('hidden');
-      flagDisplay.classList.add('hidden');
-      flagDisplay.classList.remove('flex');
-      sidebarHeader.textContent = 'Countries';
-      sidebarEl.classList.add('hide-mobile');
+      flagArea.classList.add('hidden');
+      flagArea.classList.remove('flex');
+      gameArea.classList.remove('hidden');
+      document.getElementById('sidebar').classList.add('hide-mobile');
     }
 
     if (gameType === 'flag') {
@@ -449,8 +446,17 @@
     feedback.textContent = '';
     feedback.className = feedbackBase;
 
-    buildSidebar();
-    buildMap();
+    if (gameType === 'flag') {
+      // Flag mode: no map needed, set up progress tracking directly
+      mapCountryAlphaIds = new Set(activeCountries.map(c => c.id));
+      updateProgress();
+      startTimer();
+      flagRemaining = shuffle([...activeCountries]);
+      pickNextFlag();
+    } else {
+      buildSidebar();
+      buildMap();
+    }
   }
 
   // --- Completion logic (mode-aware) ---
@@ -848,13 +854,13 @@
     if (flagRemaining.length === 0) {
       flagTarget = null;
       flagImage.src = '';
-      flagHint.textContent = '';
       return;
     }
     flagTarget = flagRemaining.shift();
-    flagImage.src = `https://flagcdn.com/w320/${flagTarget.id.toLowerCase()}.png`;
+    flagImage.src = `https://flagcdn.com/w640/${flagTarget.id.toLowerCase()}.png`;
     flagImage.alt = 'Flag';
-    flagHint.textContent = `${countCompleted() + 1} / ${mapCountryAlphaIds.size}`;
+    flagCounter.textContent = countCompleted() + 1;
+    flagTotal.textContent = activeCountries.length;
     userInput.value = '';
     userInput.focus();
   }
@@ -874,7 +880,6 @@
         const p = progress[flagTarget.id];
         p.nameFound = true;
 
-        updateCountryAppearance(flagTarget);
         updateProgress();
         showFeedback(`${flagTarget.name} — correct!`, 'success');
 
@@ -886,7 +891,7 @@
           pickNextFlag();
         }
       } else {
-        showFeedback(`Wrong! That's ${flagTarget.name}.`, 'error');
+        showFeedback('Wrong! Try again.', 'error');
         userInput.classList.add('shake');
         gameScreen.classList.add('flash-error');
         setTimeout(() => {
@@ -1158,13 +1163,14 @@
     const g = svg.append('g');
 
     const zoom = d3.zoom()
-      .scaleExtent([1, 12])
+      .scaleExtent([1, isMobile ? 20 : 12])
       .on('zoom', (event) => g.attr('transform', event.transform));
     svg.call(zoom);
 
+    const isMobile = width < 600;
     const projection = d3.geoNaturalEarth1()
-      .scale(width / 5.5)
-      .translate([width / 2, height / 2]);
+      .scale(isMobile ? width / 3.2 : width / 5.5)
+      .translate([width / 2, height / (isMobile ? 1.8 : 2)]);
 
     const pathGen = d3.geoPath().projection(projection);
 
@@ -1227,6 +1233,7 @@
           }
         });
 
+        const markerRadius = isMobile ? 2 : 4;
         const markerGroup = g.append('g').attr('class', 'small-markers');
         activeCountries.forEach(c => {
           const coords = SMALL_NATIONS[c.numId];
@@ -1239,7 +1246,7 @@
             .attr('data-num-id', c.numId)
             .attr('cx', cx)
             .attr('cy', cy)
-            .attr('r', 4)
+            .attr('r', markerRadius)
             .on('mousemove', function (event) {
               const p = progress[c.id];
               let text = '???';
@@ -1269,27 +1276,39 @@
         userInput.focus();
         startTimer();
 
-        // Initialize target/flag mode queue after map is ready
+        // Initialize target mode queue after map is ready
         if (gameType === 'target') {
           practiceRemaining = shuffle(activeCountries.filter(c => mapCountryAlphaIds.has(c.id)));
           pickNextTarget();
-        } else if (gameType === 'flag') {
-          flagRemaining = shuffle([...activeCountries]);
-          pickNextFlag();
         }
 
-        if (activeRegion !== 'World') {
-          const regionFeatures = countries.filter(d => activeNumIds.has(d.id));
-          if (regionFeatures.length > 0) {
-            const bounds = pathGen.bounds({
-              type: 'FeatureCollection',
-              features: regionFeatures
-            });
-            const dx = bounds[1][0] - bounds[0][0];
-            const dy = bounds[1][1] - bounds[0][1];
-            const x = (bounds[0][0] + bounds[1][0]) / 2;
-            const y = (bounds[0][1] + bounds[1][1]) / 2;
-            const scale = Math.min(8, 0.85 / Math.max(dx / width, dy / height));
+        // Zoom to region using predefined geographic bounds
+        const REGION_GEO_BOUNDS = {
+          'World':         [[-170, -58], [180,  80]],
+          'Asia':          [[ 25, -12], [150,  55]],
+          'Europe':        [[-12,  34], [ 45,  72]],
+          'Africa':        [[-20, -36], [ 55,  38]],
+          'North America': [[-170,  7], [-50,  84]],
+          'South America': [[-82, -56], [-34,  15]],
+          'Oceania':       [[110, -48], [180,   5]],
+        };
+
+        if (activeRegion !== 'World' || isMobile) {
+          const geoBounds = REGION_GEO_BOUNDS[activeRegion];
+          if (geoBounds) {
+            const topLeft = projection(geoBounds[0]);
+            const bottomRight = projection(geoBounds[1]);
+            const bx0 = Math.min(topLeft[0], bottomRight[0]);
+            const by0 = Math.min(topLeft[1], bottomRight[1]);
+            const bx1 = Math.max(topLeft[0], bottomRight[0]);
+            const by1 = Math.max(topLeft[1], bottomRight[1]);
+            const dx = bx1 - bx0;
+            const dy = by1 - by0;
+            const x = (bx0 + bx1) / 2;
+            const y = (by0 + by1) / 2;
+            const maxScale = isMobile ? 14 : 8;
+            const padding = isMobile ? 0.92 : 0.85;
+            const scale = Math.min(maxScale, padding / Math.max(dx / width, dy / height));
             const translate = [width / 2 - scale * x, height / 2 - scale * y];
 
             svg.transition().duration(750).call(

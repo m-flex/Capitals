@@ -328,13 +328,13 @@ button, input {
   transition: width 0.3s ease;
 }
 
-/* ===== Flag display ===== */
+/* ===== Flag quiz area ===== */
 
-#flagDisplay img {
-  transition: opacity 0.3s ease;
+.flag-img {
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-#flagDisplay img[src=""] {
+.flag-img[src=""] {
   opacity: 0;
 }
 
@@ -392,15 +392,22 @@ button, input {
     display: none;
   }
 
-  /* Flag mode sidebar on mobile — horizontal centered */
-  #flagDisplay {
-    flex-direction: row !important;
-    padding: 12px !important;
-    gap: 12px !important;
+  /* --- Flag area on mobile --- */
+  .flag-img {
+    width: 14rem !important;
   }
 
-  #flagDisplay img {
-    width: 100px !important;
+  /* --- Map on mobile --- */
+  .country-path {
+    stroke-width: 0.4px;
+  }
+
+  .country-path:hover {
+    stroke-width: 0.8px;
+  }
+
+  .country-marker {
+    stroke-width: 1px;
   }
 
   /* --- Input panel --- */
