@@ -323,6 +323,16 @@
   transition: width 0.3s ease;
 }
 
+/* ===== Flag display ===== */
+
+#flagDisplay img {
+  transition: opacity 0.3s ease;
+}
+
+#flagDisplay img[src=""] {
+  opacity: 0;
+}
+
 /* ===== Responsive ===== */
 
 @media (max-width: 768px) {

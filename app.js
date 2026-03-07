@@ -3,6 +3,7 @@
   const homeScreen = document.getElementById('homeScreen');
   const classicScreen = document.getElementById('classicScreen');
   const practiceScreen = document.getElementById('practiceScreen');
+  const flagScreen = document.getElementById('flagScreen');
   const gameScreen = document.getElementById('gameScreen');
   const backBtn = document.getElementById('backBtn');
   const regionBadge = document.getElementById('regionBadge');
@@ -57,22 +58,31 @@
   const confettiCanvas = document.getElementById('confettiCanvas');
 
   // --- Game type ---
-  let gameType = 'classic'; // 'classic' or 'target'
+  let gameType = 'classic'; // 'classic', 'target', or 'flag'
 
   // --- Target mode state ---
   let practiceTarget = null;
   let practiceRemaining = [];
 
+  // --- Flag mode state ---
+  let flagTarget = null;
+  let flagRemaining = [];
+  const flagDisplay = document.getElementById('flagDisplay');
+  const flagImage = document.getElementById('flagImage');
+  const flagHint = document.getElementById('flagHint');
+  const sidebarHeader = document.getElementById('sidebarHeader');
+
   // --- Screen helpers ---
   function showScreen(screen) {
-    [homeScreen, classicScreen, practiceScreen, gameScreen].forEach(s => s.classList.add('hidden'));
+    [homeScreen, classicScreen, practiceScreen, flagScreen, gameScreen].forEach(s => s.classList.add('hidden'));
     screen.classList.remove('hidden');
   }
 
   celebrationBackBtn.addEventListener('click', () => {
     stopTimer();
     celebrationOverlay.classList.add('hidden');
-    showScreen(gameType === 'target' ? practiceScreen : classicScreen);
+    const returnScreen = gameType === 'target' ? practiceScreen : gameType === 'flag' ? flagScreen : classicScreen;
+    showScreen(returnScreen);
     mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>';
     updateStartScreenProgress();
   });
@@ -89,6 +99,12 @@
     updateStartScreenProgress();
   });
 
+  // --- Home → Flag ---
+  document.getElementById('flagModeBtn').addEventListener('click', () => {
+    showScreen(flagScreen);
+    updateStartScreenProgress();
+  });
+
   // --- Classic → Home ---
   document.getElementById('classicBackBtn').addEventListener('click', () => {
     showScreen(homeScreen);
@@ -96,6 +112,11 @@
 
   // --- Target → Home ---
   document.getElementById('practiceBackBtn').addEventListener('click', () => {
+    showScreen(homeScreen);
+  });
+
+  // --- Flag → Home ---
+  document.getElementById('flagBackBtn').addEventListener('click', () => {
     showScreen(homeScreen);
   });
 
@@ -127,8 +148,10 @@
 
   // --- localStorage helpers (best score + time) ---
   function bestKey(region, mode, type) {
-    const prefix = (type || gameType) === 'target' ? 'target_best_' : 'capitals_best_';
-    return prefix + region.replace(/\s+/g, '_') + '_' + (mode || (gameType === 'target' ? practiceMode : activeMode));
+    const t = type || gameType;
+    const prefix = t === 'target' ? 'target_best_' : t === 'flag' ? 'flag_best_' : 'capitals_best_';
+    const m = mode || (t === 'flag' ? 'countries' : t === 'target' ? practiceMode : activeMode);
+    return prefix + region.replace(/\s+/g, '_') + '_' + m;
   }
 
   function getBest(region, mode, type) {
@@ -193,6 +216,33 @@
           fill.className = 'region-progress-fill';
           bar.appendChild(fill);
           el.parentNode.appendChild(bar);
+        }
+        bar.querySelector('.region-progress-fill').style.width =
+          total > 0 ? (best.score / total * 100) + '%' : '0%';
+      }
+
+      // Flag screen
+      const fel = document.querySelector(`[data-region-count-flag="${r}"]`);
+      if (fel) {
+        const best = getBest(r, 'countries', 'flag');
+        if (best.score > 0) {
+          let text = `Best: ${best.score} / ${total}`;
+          if (best.score === total && best.time !== null) {
+            text += ` (${formatTime(best.time)})`;
+          }
+          fel.textContent = text;
+        } else {
+          fel.textContent = `${total} countries`;
+        }
+
+        let bar = fel.parentNode.querySelector('.region-progress-bar');
+        if (!bar) {
+          bar = document.createElement('div');
+          bar.className = 'region-progress-bar';
+          const fill = document.createElement('div');
+          fill.className = 'region-progress-fill';
+          bar.appendChild(fill);
+          fel.parentNode.appendChild(bar);
         }
         bar.querySelector('.region-progress-fill').style.width =
           total > 0 ? (best.score / total * 100) + '%' : '0%';
@@ -295,9 +345,19 @@
     });
   });
 
+  document.querySelectorAll('#flagRegionGrid .region-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      gameType = 'flag';
+      activeMode = 'countries';
+      activeRegion = btn.dataset.region;
+      startGame();
+    });
+  });
+
   backBtn.addEventListener('click', () => {
     stopTimer();
-    showScreen(gameType === 'target' ? practiceScreen : classicScreen);
+    const returnScreen = gameType === 'target' ? practiceScreen : gameType === 'flag' ? flagScreen : classicScreen;
+    showScreen(returnScreen);
     mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>';
     updateStartScreenProgress();
   });
@@ -308,9 +368,32 @@
 
     // Mode badge & input hints
     const modeLabels = { countries: 'Countries', capitals: 'Capitals', both: 'Both' };
-    modeBadge.textContent = gameType === 'target' ? `Target · ${modeLabels[activeMode]}` : modeLabels[activeMode];
+    if (gameType === 'flag') {
+      modeBadge.textContent = 'Flag Quiz';
+    } else if (gameType === 'target') {
+      modeBadge.textContent = `Target · ${modeLabels[activeMode]}`;
+    } else {
+      modeBadge.textContent = modeLabels[activeMode];
+    }
 
-    if (gameType === 'target') {
+    // Toggle sidebar between country list and flag display
+    const countryListEl = document.getElementById('countryList');
+    if (gameType === 'flag') {
+      countryListEl.classList.add('hidden');
+      flagDisplay.classList.remove('hidden');
+      flagDisplay.classList.add('flex');
+      sidebarHeader.textContent = 'Flag';
+    } else {
+      countryListEl.classList.remove('hidden');
+      flagDisplay.classList.add('hidden');
+      flagDisplay.classList.remove('flex');
+      sidebarHeader.textContent = 'Countries';
+    }
+
+    if (gameType === 'flag') {
+      inputLabel.textContent = 'Country:';
+      userInput.placeholder = 'Name this country...';
+    } else if (gameType === 'target') {
       // Target mode: label updated per target in pickNextTarget()
       inputLabel.textContent = activeMode === 'countries' ? 'Country:' : 'Capital:';
       userInput.placeholder = activeMode === 'countries' ? 'Name this country...' : 'Name the capital...';
@@ -340,6 +423,8 @@
     activeNumIds = new Set();
     practiceTarget = null;
     practiceRemaining = [];
+    flagTarget = null;
+    flagRemaining = [];
 
     COUNTRIES.forEach(c => {
       numIdToCountry[c.numId] = c;
@@ -753,9 +838,61 @@
     userInput.focus();
   }
 
+  // --- Flag mode helpers ---
+  function pickNextFlag() {
+    if (flagRemaining.length === 0) {
+      flagTarget = null;
+      flagImage.src = '';
+      flagHint.textContent = '';
+      return;
+    }
+    flagTarget = flagRemaining.shift();
+    flagImage.src = `https://flagcdn.com/w320/${flagTarget.id.toLowerCase()}.png`;
+    flagImage.alt = 'Flag';
+    flagHint.textContent = `${countCompleted() + 1} / ${mapCountryAlphaIds.size}`;
+    userInput.value = '';
+    userInput.focus();
+  }
+
   function handleSubmit() {
     const val = userInput.value.trim();
     if (!val) return;
+
+    // --- Flag mode submit ---
+    if (gameType === 'flag' && flagTarget) {
+      const norm = normalize(val);
+      const targets = [flagTarget.name];
+      if (flagTarget.altNames) targets.push(...flagTarget.altNames);
+      const correct = targets.some(t => normalize(t) === norm);
+
+      if (correct) {
+        const p = progress[flagTarget.id];
+        p.nameFound = true;
+
+        updateCountryAppearance(flagTarget);
+        updateProgress();
+        showFeedback(`${flagTarget.name} — correct!`, 'success');
+
+        saveBestIfNeeded();
+
+        if (countCompleted() === mapCountryAlphaIds.size && mapCountryAlphaIds.size > 0) {
+          showCelebration();
+        } else {
+          pickNextFlag();
+        }
+      } else {
+        showFeedback(`Wrong! That's ${flagTarget.name}.`, 'error');
+        userInput.classList.add('shake');
+        gameScreen.classList.add('flash-error');
+        setTimeout(() => {
+          userInput.classList.remove('shake');
+          gameScreen.classList.remove('flash-error');
+        }, 400);
+        userInput.value = '';
+        userInput.focus();
+      }
+      return;
+    }
 
     // --- Target mode submit ---
     if (gameType === 'target' && practiceTarget) {
@@ -919,7 +1056,9 @@
     const prev = getBest(activeRegion, activeMode, gameType);
     const isNewRecord = prev.time === null || finalTime < prev.time;
 
-    let subtitle = `You named every ${modeLabels[activeMode]} in ${regionLabel}!`;
+    let subtitle = gameType === 'flag'
+      ? `You identified every flag in ${regionLabel}!`
+      : `You named every ${modeLabels[activeMode]} in ${regionLabel}!`;
     subtitle += `<br>Time: ${formatTime(finalTime)}`;
     if (!isNewRecord && prev.time !== null) {
       subtitle += ` (Best: ${formatTime(prev.time)})`;
@@ -1125,11 +1264,13 @@
         userInput.focus();
         startTimer();
 
-        // Initialize target mode queue after map is ready
+        // Initialize target/flag mode queue after map is ready
         if (gameType === 'target') {
-          // Build shuffled queue of countries that are on the map
           practiceRemaining = shuffle(activeCountries.filter(c => mapCountryAlphaIds.has(c.id)));
           pickNextTarget();
+        } else if (gameType === 'flag') {
+          flagRemaining = shuffle([...activeCountries]);
+          pickNextFlag();
         }
 
         if (activeRegion !== 'World') {
