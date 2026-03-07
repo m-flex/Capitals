@@ -1198,12 +1198,13 @@
 
     const g = svg.append('g');
 
+    const isMobile = width < 600;
+
     const zoom = d3.zoom()
       .scaleExtent([1, isMobile ? 20 : 12])
       .on('zoom', (event) => g.attr('transform', event.transform));
     svg.call(zoom);
 
-    const isMobile = width < 600;
     const projection = d3.geoNaturalEarth1()
       .scale(isMobile ? width / 3.2 : width / 5.5)
       .translate([width / 2, height / (isMobile ? 1.8 : 2)]);
