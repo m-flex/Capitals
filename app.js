@@ -181,7 +181,7 @@
     }
 
     if (dominated) {
-      const isPerfect = current === total && total > 0 && wrongCount === 0;
+      const isPerfect = current === total && total > 0 && wrongCount === 0 && !hintUsed;
       const best = {
         score: current,
         total: total,
@@ -275,8 +275,9 @@
   const mobileCountryList = document.getElementById('mobileCountryList');
   const mobileListOverlay = document.getElementById('mobileListOverlay');
 
-  // --- Wrong answer tracking ---
+  // --- Wrong answer / hint tracking ---
   let wrongCount = 0;
+  let hintUsed = false;
 
   // --- Map zoom state (for recenter) ---
   let mapZoomRef = null;
@@ -397,6 +398,7 @@
     flagTarget = null;
     flagRemaining = [];
     wrongCount = 0;
+    hintUsed = false;
 
     COUNTRIES.forEach(c => {
       numIdToCountry[c.numId] = c;
@@ -978,9 +980,7 @@
         }
       } else {
         wrongCount++;
-        showFeedback(activeMode === 'countries'
-          ? `Wrong! That's ${practiceTarget.name}.`
-          : `Wrong! The capital is ${practiceTarget.capital}.`, 'error');
+        showFeedback('Wrong! Try again.', 'error');
         userInput.classList.add('shake');
         gameScreen.classList.add('flash-error');
         setTimeout(() => {
@@ -1095,7 +1095,7 @@
     let subtitle = gameType === 'flag'
       ? `You identified every flag in ${regionLabel}!`
       : `You named every ${modeLabels[activeMode]} in ${regionLabel}!`;
-    if (wrongCount === 0) {
+    if (wrongCount === 0 && !hintUsed) {
       subtitle += `<br>\u2B50 Perfect run — no wrong answers!`;
     }
     subtitle += `<br>Time: ${formatTime(finalTime)}`;
@@ -1172,6 +1172,59 @@
   submitBtn.addEventListener('click', handleSubmit);
   userInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleSubmit();
+  });
+
+  // --- Hint button ---
+  const hintBtn = document.getElementById('hintBtn');
+
+  function getHint() {
+    // Target mode: hint for the current target
+    if (gameType === 'target' && practiceTarget) {
+      if (activeMode === 'countries') return practiceTarget.name[0];
+      return practiceTarget.capital[0];
+    }
+
+    // Flag mode: hint for the current flag
+    if (gameType === 'flag' && flagTarget) {
+      return flagTarget.name[0];
+    }
+
+    // Classic mode: pick a random incomplete country and hint a missing answer
+    const incomplete = activeCountries.filter(c =>
+      mapCountryAlphaIds.has(c.id) && !isCompleted(c.id)
+    );
+    if (incomplete.length === 0) return null;
+
+    const pick = incomplete[Math.floor(Math.random() * incomplete.length)];
+    const p = progress[pick.id];
+
+    if (activeMode === 'countries') {
+      return `${pick.name[0]}... (country)`;
+    } else if (activeMode === 'capitals') {
+      return `${pick.capital[0]}... (capital)`;
+    } else {
+      // 'both' mode — hint whichever part is still missing
+      if (!p.nameFound && !p.capitalFound) {
+        // Both missing, pick one randomly
+        return Math.random() < 0.5
+          ? `${pick.name[0]}... (country)`
+          : `${pick.capital[0]}... (capital)`;
+      }
+      if (!p.nameFound) return `${pick.name[0]}... (country)`;
+      return `${pick.capital[0]}... (capital)`;
+    }
+  }
+
+  hintBtn.addEventListener('click', () => {
+    const hint = getHint();
+    if (!hint) return;
+    hintUsed = true;
+    if (gameType === 'target' || gameType === 'flag') {
+      showFeedback(`Hint: starts with "${hint}"`, 'info');
+    } else {
+      showFeedback(`Hint: ${hint}`, 'info');
+    }
+    userInput.focus();
   });
 
   // --- Auto-submit on exact match ---
