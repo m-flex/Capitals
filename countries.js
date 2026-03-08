@@ -90,7 +90,7 @@ const COUNTRIES = [
   { id: "KI", numId: "296", name: "Kiribati", capital: "Tarawa", continent: "Oceania" },
   { id: "KP", numId: "408", name: "North Korea", capital: "Pyongyang", continent: "Asia" },
   { id: "KR", numId: "410", name: "South Korea", capital: "Seoul", continent: "Asia" },
-  { id: "XK", numId: "-99", name: "Kosovo", capital: "Pristina", continent: "Europe" },
+  { id: "XK", numId: "Kosovo", name: "Kosovo", capital: "Pristina", continent: "Europe" },
   { id: "KW", numId: "414", name: "Kuwait", capital: "Kuwait City", continent: "Asia" },
   { id: "KG", numId: "417", name: "Kyrgyzstan", capital: "Bishkek", continent: "Asia" },
   { id: "LA", numId: "418", name: "Laos", capital: "Vientiane", continent: "Asia" },
