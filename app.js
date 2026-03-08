@@ -380,6 +380,14 @@
       userInput.placeholder = 'Type a country name or capital city...';
     }
 
+    // Show skip button only in flag/target modes
+    const skipBtn = document.getElementById('skipBtn');
+    if (gameType === 'flag' || gameType === 'target') {
+      skipBtn.classList.remove('hidden');
+    } else {
+      skipBtn.classList.add('hidden');
+    }
+
     // Filter countries
     activeCountries = activeRegion === 'World'
       ? COUNTRIES
@@ -912,6 +920,8 @@
 
         if (countCompleted() === mapCountryAlphaIds.size && mapCountryAlphaIds.size > 0) {
           showCelebration();
+        } else if (flagRemaining.length === 0) {
+          showCelebration();
         } else {
           pickNextFlag();
         }
@@ -975,6 +985,9 @@
         if (countCompleted() === mapCountryAlphaIds.size && mapCountryAlphaIds.size > 0) {
           clearTargetHighlight();
           showCelebration();
+        } else if (practiceRemaining.length === 0) {
+          clearTargetHighlight();
+          showCelebration();
         } else {
           pickNextTarget();
         }
@@ -1000,12 +1013,16 @@
 
     if (byName) {
       const p = progress[byName.id];
+      // If country name and capital are the same, mark both at once
+      const sameNameCapital = activeMode === 'both'
+        && normalize(byName.name) === normalize(byName.capital);
       if (!p.nameFound) {
         p.nameFound = true;
+        if (sameNameCapital) p.capitalFound = true;
         matched = true;
         if (activeMode === 'countries') {
           showFeedback(`${byName.name} found!`, 'success');
-        } else if (p.capitalFound) {
+        } else if (sameNameCapital || p.capitalFound) {
           showFeedback(`${byName.name} completed! Both facts known.`, 'success');
         } else {
           showFeedback(`${byName.name} — country name found! Now find its capital.`, 'success');
@@ -1016,8 +1033,17 @@
         showFeedback(`${byName.name} is already completed!`, 'info');
         matched = true;
       } else {
-        showFeedback(`${byName.name} — name already known. Still need the capital!`, 'info');
-        matched = true;
+        // Name already known but capital still needed — if same, complete it
+        if (sameNameCapital && !p.capitalFound) {
+          p.capitalFound = true;
+          matched = true;
+          showFeedback(`${byName.name} completed! Both facts known.`, 'success');
+          updateCountryAppearance(byName);
+          updateProgress();
+        } else {
+          showFeedback(`${byName.name} — name already known. Still need the capital!`, 'info');
+          matched = true;
+        }
       }
     }
 
@@ -1224,6 +1250,32 @@
     } else {
       showFeedback(`Hint: ${hint}`, 'info');
     }
+    userInput.focus();
+  });
+
+  // --- Skip button ---
+  document.getElementById('skipBtn').addEventListener('click', () => {
+    if (gameType === 'flag' && flagTarget) {
+      const answer = flagTarget.name;
+      showFeedback(`Skipped — it was ${answer}.`, 'error');
+      saveBestIfNeeded();
+      if (flagRemaining.length === 0) {
+        showCelebration();
+      } else {
+        pickNextFlag();
+      }
+    } else if (gameType === 'target' && practiceTarget) {
+      const answer = activeMode === 'countries' ? practiceTarget.name : practiceTarget.capital;
+      showFeedback(`Skipped — it was ${answer}.`, 'error');
+      saveBestIfNeeded();
+      if (practiceRemaining.length === 0) {
+        clearTargetHighlight();
+        showCelebration();
+      } else {
+        pickNextTarget();
+      }
+    }
+    userInput.value = '';
     userInput.focus();
   });
 
