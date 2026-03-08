@@ -1287,13 +1287,18 @@
 
     // Build answer list based on mode
     const answers = [];
-    if (gameType === 'target' || gameType === 'flag') {
-      // All answers (correct or wrong can trigger submit)
-      for (const c of activeCountries) {
-        answers.push(normalize(c.name));
-        if (c.altNames) c.altNames.forEach(a => answers.push(normalize(a)));
-        answers.push(normalize(c.capital));
-        if (c.altCapitals) c.altCapitals.forEach(a => answers.push(normalize(a)));
+    if (gameType === 'flag' && flagTarget) {
+      // Only auto-submit on the correct answer for the current flag
+      answers.push(normalize(flagTarget.name));
+      if (flagTarget.altNames) flagTarget.altNames.forEach(a => answers.push(normalize(a)));
+    } else if (gameType === 'target' && practiceTarget) {
+      // Only auto-submit on the correct answer for the current target
+      if (activeMode === 'countries') {
+        answers.push(normalize(practiceTarget.name));
+        if (practiceTarget.altNames) practiceTarget.altNames.forEach(a => answers.push(normalize(a)));
+      } else {
+        answers.push(normalize(practiceTarget.capital));
+        if (practiceTarget.altCapitals) practiceTarget.altCapitals.forEach(a => answers.push(normalize(a)));
       }
     } else {
       // Classic: only unfound answers
@@ -1312,6 +1317,8 @@
     }
 
     if (!answers.includes(norm)) return;
+    // In classic mode, don't auto-submit if another unfound answer starts with this input
+    if (gameType === 'classic' && answers.some(a => a.startsWith(norm) && a !== norm)) return;
     handleSubmit();
   });
 
