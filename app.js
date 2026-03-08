@@ -1260,8 +1260,6 @@
     }
 
     if (!answers.includes(norm)) return;
-    // Don't auto-submit if another answer starts with this input (e.g. UK vs Ukraine)
-    if (answers.some(a => a.startsWith(norm) && a !== norm)) return;
     handleSubmit();
   });
 
