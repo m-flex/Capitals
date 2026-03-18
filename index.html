@@ -75,6 +75,16 @@
           <span class="ml-auto text-muted text-xl">&rsaquo;</span>
         </button>
 
+        <button id="mapModeBtn"
+                class="w-full flex items-center gap-4 p-4 md:p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-sky hover:bg-pastel-sky/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(162,210,255,0.12)] active:translate-y-0 text-left">
+          <span class="text-4xl">&#128205;</span>
+          <div>
+            <div class="text-lg font-bold text-gray-100">Map Mode</div>
+            <div class="text-xs text-muted-dark mt-0.5">Find countries by clicking on the map</div>
+          </div>
+          <span class="ml-auto text-muted text-xl">&rsaquo;</span>
+        </button>
+
         <button id="flagModeBtn"
                 class="w-full flex items-center gap-4 p-4 md:p-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-peach hover:bg-pastel-peach/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(254,200,154,0.12)] active:translate-y-0 text-left">
           <span class="text-4xl">&#127988;</span>
@@ -196,6 +206,62 @@
           <span class="text-3xl">&#127758;</span>
           <span class="text-sm font-bold">Oceania</span>
           <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-practice="Oceania"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map Mode Selection Screen -->
+  <div class="screen hidden min-h-screen flex items-center justify-center px-5 py-10" id="mapModeScreen"
+       style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);">
+    <div class="max-w-[720px] w-full text-center">
+      <button id="mapBackBtn"
+              class="mb-6 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-pastel-blue text-lg cursor-pointer transition-all duration-200 hover:bg-pastel-pink/[0.12] hover:border-pastel-pink hover:text-pastel-pink">
+        &#8592;
+      </button>
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-2 animate-gradient-text">Map Mode</h2>
+      <p class="text-sm text-muted mb-8">Click on the correct country on the map</p>
+
+      <div class="inline-flex rounded-xl bg-white/[0.04] border border-white/[0.08] p-1 mb-8" id="mapModeTabs">
+        <button class="mode-tab px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer active" data-mode="countries">Countries</button>
+        <button class="mode-tab px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer" data-mode="capitals">Capitals</button>
+      </div>
+
+      <div class="region-grid grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3" id="mapRegionGrid">
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-sky hover:bg-pastel-sky/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(162,210,255,0.12)] active:translate-y-0" data-region="World">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">World Map</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-map="World"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-sky hover:bg-pastel-sky/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(162,210,255,0.12)] active:translate-y-0" data-region="Asia">
+          <span class="text-3xl">&#127759;</span>
+          <span class="text-sm font-bold">Asia</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-map="Asia"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-sky hover:bg-pastel-sky/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(162,210,255,0.12)] active:translate-y-0" data-region="Europe">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Europe</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-map="Europe"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-sky hover:bg-pastel-sky/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(162,210,255,0.12)] active:translate-y-0" data-region="Africa">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Africa</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-map="Africa"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-sky hover:bg-pastel-sky/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(162,210,255,0.12)] active:translate-y-0" data-region="North America">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">North America</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-map="North America"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-sky hover:bg-pastel-sky/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(162,210,255,0.12)] active:translate-y-0" data-region="South America">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">South America</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-map="South America"></span>
+        </button>
+        <button class="region-btn group flex flex-col items-center gap-1.5 py-5 px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:border-pastel-sky hover:bg-pastel-sky/[0.08] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(162,210,255,0.12)] active:translate-y-0" data-region="Oceania">
+          <span class="text-3xl">&#127758;</span>
+          <span class="text-sm font-bold">Oceania</span>
+          <span class="region-count text-[0.7rem] text-muted font-semibold" data-region-count-map="Oceania"></span>
         </button>
       </div>
     </div>

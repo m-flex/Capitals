@@ -140,6 +140,35 @@ button, input {
   stroke-width: 1.5px;
 }
 
+/* Map mode: clickable countries */
+.map-mode-active .country-path:not(.out-of-region):not(.completed) {
+  cursor: pointer;
+}
+
+.map-mode-active .country-marker:not(.out-of-region):not(.completed) {
+  cursor: pointer;
+}
+
+.country-path.map-wrong-click,
+.country-marker.map-wrong-click {
+  fill: #FFB3BA !important;
+  opacity: 1 !important;
+  transition: fill 0.15s ease;
+}
+
+/* Map mode prompt styling */
+.map-mode-label {
+  font-size: 1.15rem !important;
+  min-width: auto !important;
+  flex: 1;
+  text-align: center;
+}
+
+.map-mode-label .map-prompt-name {
+  color: #A2D2FF;
+  font-weight: 800;
+}
+
 /* Practice mode target highlight */
 .country-path.practice-target {
   opacity: 1;

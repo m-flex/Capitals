@@ -4,6 +4,7 @@
   const classicScreen = document.getElementById('classicScreen');
   const practiceScreen = document.getElementById('practiceScreen');
   const flagScreen = document.getElementById('flagScreen');
+  const mapModeScreen = document.getElementById('mapModeScreen');
   const gameScreen = document.getElementById('gameScreen');
   const backBtn = document.getElementById('backBtn');
   const regionBadge = document.getElementById('regionBadge');
@@ -58,7 +59,7 @@
   const confettiCanvas = document.getElementById('confettiCanvas');
 
   // --- Game type ---
-  let gameType = 'classic'; // 'classic', 'target', or 'flag'
+  let gameType = 'classic'; // 'classic', 'target', 'flag', or 'map'
 
   // --- Target mode state ---
   let practiceTarget = null;
@@ -67,6 +68,9 @@
   // --- Flag mode state ---
   let flagTarget = null;
   let flagRemaining = [];
+  let mapQuizMode = 'countries'; // 'countries' or 'capitals' for map mode
+  let mapTarget = null;
+  let mapRemaining = [];
   const flagArea = document.getElementById('flagArea');
   const flagImage = document.getElementById('flagImage');
   const flagCounter = document.getElementById('flagCounter');
@@ -76,16 +80,17 @@
 
   // --- Screen helpers ---
   function showScreen(screen) {
-    [homeScreen, classicScreen, practiceScreen, flagScreen, gameScreen].forEach(s => s.classList.add('hidden'));
+    [homeScreen, classicScreen, practiceScreen, flagScreen, mapModeScreen, gameScreen].forEach(s => s.classList.add('hidden'));
     screen.classList.remove('hidden');
   }
 
   celebrationBackBtn.addEventListener('click', () => {
     stopTimer();
     celebrationOverlay.classList.add('hidden');
-    const returnScreen = gameType === 'target' ? practiceScreen : gameType === 'flag' ? flagScreen : classicScreen;
+    const returnScreen = gameType === 'target' ? practiceScreen : gameType === 'flag' ? flagScreen : gameType === 'map' ? mapModeScreen : classicScreen;
     showScreen(returnScreen);
     mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>';
+    mapContainer.classList.remove('map-mode-active');
     updateStartScreenProgress();
   });
 
@@ -98,6 +103,12 @@
   // --- Home → Target ---
   document.getElementById('practiceModeBtn').addEventListener('click', () => {
     showScreen(practiceScreen);
+    updateStartScreenProgress();
+  });
+
+  // --- Home → Map Mode ---
+  document.getElementById('mapModeBtn').addEventListener('click', () => {
+    showScreen(mapModeScreen);
     updateStartScreenProgress();
   });
 
@@ -119,6 +130,11 @@
 
   // --- Flag → Home ---
   document.getElementById('flagBackBtn').addEventListener('click', () => {
+    showScreen(homeScreen);
+  });
+
+  // --- Map Mode → Home ---
+  document.getElementById('mapBackBtn').addEventListener('click', () => {
     showScreen(homeScreen);
   });
 
@@ -148,11 +164,22 @@
     });
   });
 
+  // Map mode tabs
+  const mapModeTabs = document.querySelectorAll('#mapModeTabs .mode-tab');
+  mapModeTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      mapModeTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      mapQuizMode = tab.dataset.mode;
+      updateStartScreenProgress();
+    });
+  });
+
   // --- localStorage helpers (best score + time) ---
   function bestKey(region, mode, type) {
     const t = type || gameType;
-    const prefix = t === 'target' ? 'target_best_' : t === 'flag' ? 'flag_best_' : 'capitals_best_';
-    const m = mode || (t === 'flag' ? 'countries' : t === 'target' ? practiceMode : activeMode);
+    const prefix = t === 'target' ? 'target_best_' : t === 'flag' ? 'flag_best_' : t === 'map' ? 'map_best_' : 'capitals_best_';
+    const m = mode || (t === 'flag' ? 'countries' : t === 'target' ? practiceMode : t === 'map' ? mapQuizMode : activeMode);
     return prefix + region.replace(/\s+/g, '_') + '_' + m;
   }
 
@@ -232,6 +259,7 @@
       updateRegionEl(document.querySelector(`[data-region-count="${r}"]`), getBest(r, activeMode, 'classic'), total);
       updateRegionEl(document.querySelector(`[data-region-count-flag="${r}"]`), getBest(r, 'countries', 'flag'), total);
       updateRegionEl(document.querySelector(`[data-region-count-practice="${r}"]`), getBest(r, practiceMode, 'target'), total);
+      updateRegionEl(document.querySelector(`[data-region-count-map="${r}"]`), getBest(r, mapQuizMode, 'map'), total);
     });
   }
 
@@ -328,11 +356,21 @@
     });
   });
 
+  document.querySelectorAll('#mapRegionGrid .region-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      gameType = 'map';
+      activeMode = 'countries'; // always countries for completion tracking
+      activeRegion = btn.dataset.region;
+      startGame();
+    });
+  });
+
   backBtn.addEventListener('click', () => {
     stopTimer();
-    const returnScreen = gameType === 'target' ? practiceScreen : gameType === 'flag' ? flagScreen : classicScreen;
+    const returnScreen = gameType === 'target' ? practiceScreen : gameType === 'flag' ? flagScreen : gameType === 'map' ? mapModeScreen : classicScreen;
     showScreen(returnScreen);
     mapContainer.innerHTML = '<div class="tooltip" id="tooltip"></div>';
+    mapContainer.classList.remove('map-mode-active');
     updateStartScreenProgress();
   });
 
@@ -346,6 +384,8 @@
       modeBadge.textContent = 'Flag Quiz';
     } else if (gameType === 'target') {
       modeBadge.textContent = `Target · ${modeLabels[activeMode]}`;
+    } else if (gameType === 'map') {
+      modeBadge.textContent = `Map · ${modeLabels[mapQuizMode]}`;
     } else {
       modeBadge.textContent = modeLabels[activeMode];
     }
@@ -362,6 +402,23 @@
       document.getElementById('sidebar').classList.add('hide-mobile');
     }
 
+    if (gameType === 'map') {
+      // Map mode: hide text input and submit, show prompt in label
+      userInput.classList.add('hidden');
+      submitBtn.classList.add('hidden');
+      inputLabel.classList.add('map-mode-label');
+      inputLabel.innerHTML = 'Loading map...';
+      mapContainer.classList.add('map-mode-active');
+      // Hide sidebar in map mode
+      document.getElementById('sidebar').style.display = 'none';
+    } else {
+      userInput.classList.remove('hidden');
+      submitBtn.classList.remove('hidden');
+      inputLabel.classList.remove('map-mode-label');
+      mapContainer.classList.remove('map-mode-active');
+      document.getElementById('sidebar').style.display = '';
+    }
+
     if (gameType === 'flag') {
       inputLabel.textContent = 'Country:';
       userInput.placeholder = 'Name this country...';
@@ -369,6 +426,8 @@
       // Target mode: label updated per target in pickNextTarget()
       inputLabel.textContent = activeMode === 'countries' ? 'Country:' : 'Capital:';
       userInput.placeholder = activeMode === 'countries' ? 'Name this country...' : 'Name the capital...';
+    } else if (gameType === 'map') {
+      // Label updated per target in pickNextMapTarget()
     } else if (activeMode === 'countries') {
       inputLabel.textContent = 'Country:';
       userInput.placeholder = 'Type a country name...';
@@ -380,9 +439,9 @@
       userInput.placeholder = 'Type a country name or capital city...';
     }
 
-    // Show skip button only in flag/target modes
+    // Show skip button in flag/target/map modes
     const skipBtn = document.getElementById('skipBtn');
-    if (gameType === 'flag' || gameType === 'target') {
+    if (gameType === 'flag' || gameType === 'target' || gameType === 'map') {
       skipBtn.classList.remove('hidden');
     } else {
       skipBtn.classList.add('hidden');
@@ -405,6 +464,8 @@
     practiceRemaining = [];
     flagTarget = null;
     flagRemaining = [];
+    mapTarget = null;
+    mapRemaining = [];
     wrongCount = 0;
     hintUsed = false;
 
@@ -439,6 +500,11 @@
       buildSidebar();
       buildMap();
       attachMobileMapBtnListeners();
+      // Hide list toggle in map mode (no sidebar)
+      if (gameType === 'map') {
+        const listBtn = document.getElementById('listToggleBtn');
+        if (listBtn) listBtn.style.display = 'none';
+      }
     }
   }
 
@@ -882,6 +948,81 @@
     mapSvgRef.transition().duration(600).call(mapZoomRef.transform, transform);
   }
 
+  // --- Map mode helpers ---
+  function pickNextMapTarget() {
+    if (mapRemaining.length === 0) {
+      mapTarget = null;
+      inputLabel.innerHTML = 'All done!';
+      return;
+    }
+    mapTarget = mapRemaining.shift();
+
+    if (mapQuizMode === 'capitals') {
+      inputLabel.innerHTML = `Where is <span class="map-prompt-name">${mapTarget.capital}</span> ?`;
+    } else {
+      inputLabel.innerHTML = `Click on <span class="map-prompt-name">${mapTarget.name}</span>`;
+    }
+
+    feedback.textContent = '';
+    feedback.className = feedbackBase;
+  }
+
+  function handleMapClick(clickedNumId) {
+    if (gameType !== 'map' || !mapTarget) return;
+
+    const clickedCountry = numIdToCountry[clickedNumId];
+    if (!clickedCountry) return;
+
+    // Ignore clicks on out-of-region or already completed countries
+    if (!activeNumIds.has(clickedNumId) && !activeNumIds.has(String(Number(clickedNumId)))) return;
+    if (isCompleted(clickedCountry.id)) {
+      showFeedback(`${clickedCountry.name} is already completed!`, 'info');
+      return;
+    }
+
+    // Check if this is the correct country
+    const targetNumIds = [mapTarget.numId, String(Number(mapTarget.numId))];
+    const clickedIds = [clickedNumId, String(Number(clickedNumId))];
+    const isCorrect = targetNumIds.some(t => clickedIds.includes(t));
+
+    if (isCorrect) {
+      const p = progress[mapTarget.id];
+      p.nameFound = true;
+
+      updateCountryAppearance(mapTarget);
+      updateProgress();
+
+      const msg = mapQuizMode === 'capitals'
+        ? `${mapTarget.capital} is in ${mapTarget.name} — correct!`
+        : `${mapTarget.name} — correct!`;
+      showFeedback(msg, 'success');
+
+      saveBestIfNeeded();
+
+      if (countCompleted() === mapCountryAlphaIds.size && mapCountryAlphaIds.size > 0) {
+        showCelebration();
+      } else if (mapRemaining.length === 0) {
+        showCelebration();
+      } else {
+        setTimeout(() => pickNextMapTarget(), 400);
+      }
+    } else {
+      wrongCount++;
+      const clickedName = clickedCountry.name;
+      showFeedback(`That's ${clickedName}, not ${mapTarget.name}!`, 'error');
+
+      // Flash the wrong country red briefly
+      const els = queryByNumId(clickedNumId);
+      els.forEach(el => el.classList.add('map-wrong-click'));
+      setTimeout(() => {
+        els.forEach(el => el.classList.remove('map-wrong-click'));
+      }, 500);
+
+      gameScreen.classList.add('flash-error');
+      setTimeout(() => gameScreen.classList.remove('flash-error'), 400);
+    }
+  }
+
   // --- Flag mode helpers ---
   function pickNextFlag() {
     if (flagRemaining.length === 0) {
@@ -1120,6 +1261,8 @@
 
     let subtitle = gameType === 'flag'
       ? `You identified every flag in ${regionLabel}!`
+      : gameType === 'map'
+      ? `You found every country in ${regionLabel}!`
       : `You named every ${modeLabels[activeMode]} in ${regionLabel}!`;
     if (wrongCount === 0 && !hintUsed) {
       subtitle += `<br>\u2B50 Perfect run — no wrong answers!`;
@@ -1204,6 +1347,12 @@
   const hintBtn = document.getElementById('hintBtn');
 
   function getHint() {
+    // Map mode: zoom to the target country as a hint
+    if (gameType === 'map' && mapTarget) {
+      zoomToCountry(mapTarget);
+      return null; // handled separately
+    }
+
     // Target mode: hint for the current target
     if (gameType === 'target' && practiceTarget) {
       if (activeMode === 'countries') return practiceTarget.name[0];
@@ -1242,6 +1391,12 @@
   }
 
   hintBtn.addEventListener('click', () => {
+    if (gameType === 'map' && mapTarget) {
+      hintUsed = true;
+      zoomToCountry(mapTarget);
+      showFeedback('Zooming to the area...', 'info');
+      return;
+    }
     const hint = getHint();
     if (!hint) return;
     hintUsed = true;
@@ -1274,6 +1429,21 @@
       } else {
         pickNextTarget();
       }
+    } else if (gameType === 'map' && mapTarget) {
+      // Briefly highlight the correct country before moving on
+      const els = queryByNumId(mapTarget.numId);
+      els.forEach(el => el.classList.add('practice-target'));
+      showFeedback(`Skipped — it was ${mapTarget.name}.`, 'error');
+      saveBestIfNeeded();
+      setTimeout(() => {
+        els.forEach(el => el.classList.remove('practice-target'));
+        if (mapRemaining.length === 0) {
+          showCelebration();
+        } else {
+          pickNextMapTarget();
+        }
+      }, 1200);
+      return;
     }
     userInput.value = '';
     userInput.focus();
@@ -1437,7 +1607,9 @@
             if (!country || !activeNumIds.has(d.id)) return;
             const p = progress[country.id];
             let text = '???';
-            if (p && p.nameFound && p.capitalFound) {
+            if (gameType === 'map') {
+              text = isCompleted(country.id) ? country.name : '???';
+            } else if (p && p.nameFound && p.capitalFound) {
               text = `${country.name} — ${country.capital}`;
             } else if (p && p.nameFound) {
               text = activeMode === 'countries' ? country.name : `${country.name} — capital: ???`;
@@ -1452,6 +1624,9 @@
           })
           .on('mouseleave', function () {
             tooltipEl.classList.remove('visible');
+          })
+          .on('click', function (event, d) {
+            handleMapClick(String(d.id));
           });
 
         mapCountryIds.clear();
@@ -1481,7 +1656,9 @@
             .on('mousemove', function (event) {
               const p = progress[c.id];
               let text = '???';
-              if (p && p.nameFound && p.capitalFound) {
+              if (gameType === 'map') {
+                text = isCompleted(c.id) ? c.name : '???';
+              } else if (p && p.nameFound && p.capitalFound) {
                 text = `${c.name} — ${c.capital}`;
               } else if (p && p.nameFound) {
                 text = activeMode === 'countries' ? c.name : `${c.name} — capital: ???`;
@@ -1496,6 +1673,9 @@
             })
             .on('mouseleave', function () {
               tooltipEl.classList.remove('visible');
+            })
+            .on('click', function () {
+              handleMapClick(c.numId);
             });
 
           mapCountryIds.add(c.numId);
@@ -1511,6 +1691,12 @@
         if (gameType === 'target') {
           practiceRemaining = shuffle(activeCountries.filter(c => mapCountryAlphaIds.has(c.id)));
           pickNextTarget();
+        }
+
+        // Initialize map mode queue after map is ready
+        if (gameType === 'map') {
+          mapRemaining = shuffle(activeCountries.filter(c => mapCountryAlphaIds.has(c.id)));
+          pickNextMapTarget();
         }
 
         // Zoom to region using predefined geographic bounds
